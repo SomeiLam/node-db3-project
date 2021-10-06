@@ -6,8 +6,10 @@ const checkSchemeId = async (req, res, next) => {
       .where('scheme_id', req.params.scheme_id)
       .first()
     if (!exists) {
-      req.error = { message: `scheme with scheme_id ${req.params.scheme_id} not found` }
-      next()
+      next({
+        status: 404,
+        message: `scheme with scheme_id ${req.params.scheme_id} not found`
+      })
     } else {
       next()
     }
@@ -19,28 +21,29 @@ const checkSchemeId = async (req, res, next) => {
 const validateScheme = (req, res, next) => {
   if (req.body.scheme_name === undefined ||
     typeof req.body.scheme_name !== 'string' ||
-    !req.body.scheme_name.trim()
-  ) {
+    !req.body.scheme_name.trim()) {
     next({
-      status: 400,
-      message: 'invalid scheme_name'
+      status: 400, message: 'invalid scheme_name'
     })
   } else {
     next()
   }
 }
 
-/*
-  If `instructions` is missing, empty string or not a string, or
-  if `step_number` is not a number or is smaller than one:
-
-  status 400
-  {
-    "message": "invalid step"
-  }
-*/
 const validateStep = (req, res, next) => {
+  const { instructions, step_number } = req.body
 
+  if (instructions === undefined ||
+    typeof instructions !== 'string' ||
+    !instructions.trim() ||
+    typeof step_number !== 'number' ||
+    step_number < 1
+  ) {
+    const error = { status: 400, message: 'invalid step' }
+    next(error)
+  } else {
+    next()
+  }
 }
 
 module.exports = {

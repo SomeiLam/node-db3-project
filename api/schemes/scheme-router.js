@@ -5,6 +5,23 @@ const Schemes = require('./scheme-model.js')
 
 const router = express.Router()
 
+/**
+  [GET] /api/schemes
+  response:
+  [
+    {
+      "scheme_id": 1,
+      "scheme_name": "World Domination",
+      "number_of_steps": 3
+    },
+    {
+      "scheme_id": 2,
+      "scheme_name": "Get Rich Quick",
+      "number_of_steps": 2
+    },
+    // etc
+  ]
+ */
 router.get('/', (req, res, next) => {
   Schemes.find()
     .then(schemes => {
@@ -13,35 +30,66 @@ router.get('/', (req, res, next) => {
     .catch(next)
 })
 
+/*
+  [GET] /api/schemes/2
+  response:
+  {
+    "scheme_id": 2,
+    "scheme_name": "Get Rich Quick",
+    "steps": [
+      {
+          "step_id": 5,
+          "step_number": 1,
+          "instructions": "collect all the sheep in Scotland"
+      },
+      {
+          "step_id": 4,
+          "step_number": 2,
+          "instructions": "profit"
+      }
+    ]
+  }
+*/
 router.get('/:scheme_id', checkSchemeId, (req, res, next) => {
   const { scheme_id } = req.params
-  if (req.error) {
-    res.status(404).json(req.error)
-  } else {
-    Schemes.findById(scheme_id)
-      .then(scheme => {
-        res.json(scheme)
-      })
-      .catch(next)
-  }
+
+  Schemes.findById(scheme_id)
+    .then(scheme => {
+      res.json(scheme)
+    })
+    .catch(next)
 })
 
+/*
+  [GET] /api/schemes/2/steps
+  response:
+  [
+    {
+      "step_id": 5,
+      "step_number": 1,
+      "instructions": "collect all the sheep in Scotland",
+      "scheme_name": "Get Rich Quick"
+    },
+    {
+      "step_id": 4,
+      "step_number": 2,
+      "instructions": "profit",
+      "scheme_name": "Get Rich Quick"
+    }
+  ]
+*/
 router.get('/:scheme_id/steps', checkSchemeId, (req, res, next) => {
   const { scheme_id } = req.params
-  if (req.error) {
-    res.status(404).json({ message: `scheme with scheme_id ${scheme_id} not found` })
-  } else {
-    Schemes.findSteps(scheme_id)
-      .then(steps => {
-        res.json(steps)
-      })
-      .catch(next)
-  }
+
+  Schemes.findSteps(scheme_id)
+    .then(steps => {
+      res.json(steps)
+    })
+    .catch(next)
 })
 
 /*
   [POST] /api/schemes { "scheme_name": "Take Ovah" }
-
   response:
   {
     "scheme_id": 8,
@@ -50,6 +98,7 @@ router.get('/:scheme_id/steps', checkSchemeId, (req, res, next) => {
 */
 router.post('/', validateScheme, (req, res, next) => {
   const scheme = req.body
+
   Schemes.add(scheme)
     .then(scheme => {
       res.status(201).json(scheme)
@@ -59,7 +108,6 @@ router.post('/', validateScheme, (req, res, next) => {
 
 /*
   [POST] /api/schemes/5/steps { "instructions": "and yet more questing", "step_number": 2 }
-
   response:
   [
     {
