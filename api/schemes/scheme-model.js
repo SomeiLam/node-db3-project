@@ -1,6 +1,6 @@
 const db = require('../../data/db-config')
 
-function find() { // EXERCISE A
+function find() {
   return db('schemes as sc')
     .leftJoin('steps as st', 'sc.scheme_id', 'st.scheme_id')
     .select('sc.scheme_id', 'sc.scheme_name')
@@ -8,73 +8,7 @@ function find() { // EXERCISE A
     .groupBy('sc.scheme_id')
 }
 
-async function findById(scheme_id) { // EXERCISE B
-  /*
-    1B- Study the SQL query below running it in SQLite Studio against `data/schemes.db3`:
-
-      SELECT
-          sc.scheme_name,
-          st.*
-      FROM schemes as sc
-      LEFT JOIN steps as st
-          ON sc.scheme_id = st.scheme_id
-      WHERE sc.scheme_id = 1
-      ORDER BY st.step_number ASC;
-
-    2B- When you have a grasp on the query go ahead and build it in Knex
-    making it parametric: instead of a literal `1` you should use `scheme_id`.
-
-    3B- Test in Postman and see that the resulting data does not look like a scheme,
-    but more like an array of steps each including scheme information:
-
-      [
-        {
-          "scheme_id": 1,
-          "scheme_name": "World Domination",
-          "step_id": 2,
-          "step_number": 1,
-          "instructions": "solve prime number theory"
-        },
-        {
-          "scheme_id": 1,
-          "scheme_name": "World Domination",
-          "step_id": 1,
-          "step_number": 2,
-          "instructions": "crack cyber security"
-        },
-        // etc
-      ]
-
-    4B- Using the array obtained and vanilla JavaScript, create an object with
-    the structure below, for the case _when steps exist_ for a given `scheme_id`:
-
-      {
-        "scheme_id": 1,
-        "scheme_name": "World Domination",
-        "steps": [
-          {
-            "step_id": 2,
-            "step_number": 1,
-            "instructions": "solve prime number theory"
-          },
-          {
-            "step_id": 1,
-            "step_number": 2,
-            "instructions": "crack cyber security"
-          },
-          // etc
-        ]
-      }
-
-    5B- This is what the result should look like _if there are no steps_ for a `scheme_id`:
-
-      {
-        "scheme_id": 7,
-        "scheme_name": "Have Fun!",
-        "steps": []
-      }
-      return (!step.step_id && !step.step_number && !step.instructions)
-  */
+async function findById(scheme_id) {
   const rows = await db('schemes as sc')
     .leftJoin('steps as st', 'sc.scheme_id', 'st.scheme_id')
     .select('sc.scheme_name', 'st.step_id', 'st.step_number', 'st.instructions', 'sc.scheme_id')
@@ -95,11 +29,10 @@ async function findById(scheme_id) { // EXERCISE B
         }
       })
   }
-
   return result
 }
 
-function findSteps(scheme_id) { // EXERCISE C
+async function findSteps(scheme_id) { // EXERCISE C
   /*
     1C- Build a query in Knex that returns the following data.
     The steps should be sorted by step_number, and the array
@@ -120,6 +53,16 @@ function findSteps(scheme_id) { // EXERCISE C
         }
       ]
   */
+  return await db('steps as st')
+    .leftJoin('schemes as sc', 'st.scheme_id', 'sc.scheme_id')
+    .select(
+      'st.step_id',
+      'st.step_number',
+      'st.instructions',
+      'sc.scheme_name'
+    )
+    .where('st.scheme_id', scheme_id)
+    .orderBy('st.step_number', 'asc')
 }
 
 function add(scheme) { // EXERCISE D
