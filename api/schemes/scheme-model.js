@@ -32,27 +32,7 @@ async function findById(scheme_id) {
   return result
 }
 
-async function findSteps(scheme_id) { // EXERCISE C
-  /*
-    1C- Build a query in Knex that returns the following data.
-    The steps should be sorted by step_number, and the array
-    should be empty if there are no steps for the scheme:
- 
-      [
-        {
-          "step_id": 5,
-          "step_number": 1,
-          "instructions": "collect all the sheep in Scotland",
-          "scheme_name": "Get Rich Quick"
-        },
-        {
-          "step_id": 4,
-          "step_number": 2,
-          "instructions": "profit",
-          "scheme_name": "Get Rich Quick"
-        }
-      ]
-  */
+async function findSteps(scheme_id) {
   return await db('steps as st')
     .leftJoin('schemes as sc', 'st.scheme_id', 'sc.scheme_id')
     .select(
@@ -65,10 +45,12 @@ async function findSteps(scheme_id) { // EXERCISE C
     .orderBy('st.step_number', 'asc')
 }
 
-function add(scheme) { // EXERCISE D
-  /*
-    1D- This function creates a new scheme and resolves to _the newly created scheme_.
-  */
+function add(scheme) {
+  return db('schemes')
+    .insert(scheme)
+    .then(ids => {
+      return findById(ids[0])
+    })
 }
 
 function addStep(scheme_id, step) { // EXERCISE E
