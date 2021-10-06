@@ -8,7 +8,7 @@ function find() { // EXERCISE A
     .groupBy('sc.scheme_id')
 }
 
-function findById(scheme_id) { // EXERCISE B
+async function findById(scheme_id) { // EXERCISE B
   /*
     1B- Study the SQL query below running it in SQLite Studio against `data/schemes.db3`:
 
@@ -73,7 +73,30 @@ function findById(scheme_id) { // EXERCISE B
         "scheme_name": "Have Fun!",
         "steps": []
       }
+      return (!step.step_id && !step.step_number && !step.instructions)
   */
+  const rows = await db('schemes as sc')
+    .leftJoin('steps as st', 'sc.scheme_id', 'st.scheme_id')
+    .select('sc.scheme_name', 'st.step_id', 'st.step_number', 'st.instructions', 'sc.scheme_id')
+    .where('sc.scheme_id', scheme_id)
+    .orderBy('st.step_number', 'asc')
+
+  const result = {
+    scheme_id: rows[0].scheme_id,
+    scheme_name: rows[0].scheme_name,
+    steps: rows.filter(scheme => {
+      return scheme.step_id !== null
+    })
+      .map(step => {
+        return {
+          step_id: step.step_id,
+          step_number: step.step_number,
+          instructions: step.instructions
+        }
+      })
+  }
+
+  return result
 }
 
 function findSteps(scheme_id) { // EXERCISE C
@@ -81,7 +104,7 @@ function findSteps(scheme_id) { // EXERCISE C
     1C- Build a query in Knex that returns the following data.
     The steps should be sorted by step_number, and the array
     should be empty if there are no steps for the scheme:
-
+ 
       [
         {
           "step_id": 5,
